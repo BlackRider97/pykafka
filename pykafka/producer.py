@@ -152,6 +152,7 @@ class Producer(object):
             can be started with `start()`.
         :type auto_start: bool
         """
+        print "[kafka] creating producer"
         self._cluster = cluster
         self._topic = topic
         self._partitioner = partitioner
@@ -183,6 +184,7 @@ class Producer(object):
         self._update_lock = self._cluster.handler.Lock()
         if self._auto_start:
             self.start()
+        print "[kafka] created kafka producer"
 
     def __del__(self):
         log.debug("Finalising {}".format(self))
@@ -308,6 +310,7 @@ class Producer(object):
             message to
         :type partition_key: bytes
         """
+        print "[kafka] producing message"
         if not (isinstance(partition_key, bytes) or partition_key is None):
             raise TypeError("Producer.produce accepts a bytes object as partition_key, "
                             "but it got '%s'", type(partition_key))
@@ -328,6 +331,7 @@ class Producer(object):
         self._produce(msg)
 
         if self._synchronous:
+            print "[kafka] sync producing message"
             while True:
                 self._cluster.handler.sleep()
                 try:
@@ -365,8 +369,11 @@ class Producer(object):
         :type message: `pykafka.protocol.Message`
         """
         success = False
+        print "[kafka] sync _produce message"
         while not success:
+            
             leader_id = self._topic.partitions[message.partition_id].leader.id
+            print "[kafka] sync _produce message in loop leader_id =",leader_id
             if leader_id in self._owned_brokers:
                 self._owned_brokers[leader_id].enqueue(message)
                 success = True
